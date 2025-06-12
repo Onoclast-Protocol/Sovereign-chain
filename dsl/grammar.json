@@ -1,0 +1,166 @@
+{
+  "language": "SovereignScript-v3.4",
+  "symbols": {
+    "assign": "=",
+    "math": ["+", "-", "*", "/"],
+    "end": [";", "done", "stop", "quit", "end"]
+  },
+  "structure": {
+    "variable": {
+      "declare": [
+        "its <name> = <value>;",
+        "let <name> = <value>;",
+        "var <name> = <value>;",
+        "const <name> = <value>;"
+      ]
+    },
+    "update": [
+      "set <name> = <value>;",
+      "update <name> = <value>;"
+    ]
+  },
+  "output": [
+    "say <value>;",
+    "print <value>;",
+    "echo <value>;"
+  ],
+  "function": {
+    "define": [
+      "do <name>(<args>)",
+      "fn <name>(<args>)",
+      "function <name>(<args>)",
+      "def <name>(<args>)"
+    ],
+    "end": ["done", "end", "}"],
+    "call": [
+      "call <name>(<args>);",
+      "<name>(<args>);",
+      "invoke <name>(<args>);"
+    ],
+    "return": [
+      "return <value>;",
+      "give <value>;",
+      "yield <value>;"
+    ]
+  },
+  "errors": {
+    "try": ["try"],
+    "catch": ["catch", "except", "when fail", "on fail"],
+    "fail": ["fail", "throw", "error"],
+    "end": ["done", "stop", "quit", "end"]
+  },
+  "event": {
+    "hook": [
+      "on <event> do <name>()",
+      "when <event> -> <name>()",
+      "handle <event> with <name>()"
+    ],
+    "end": ["done", "end"]
+  },
+  "control": {
+    "if": [
+      "if <condition>",
+      "when <condition>",
+      "unless not <condition>"
+    ],
+    "else": ["else", "otherwise"],
+    "loop": [
+      "loop while <condition>",
+      "loop until <condition>",
+      "repeat while <condition>",
+      "repeat until <condition>",
+      "while <condition>",
+      "until <condition>",
+      "as <condition>"
+    ],
+    "iterate": [
+      "cycle",
+      "repeat",
+      "for each",
+      "for"
+    ],
+    "end": ["done", "stop", "quit", "end"]
+  },
+  "fractal": {
+    "define": [
+      "fractal <name> = { ... }",
+      "frax <name> = { ... }"
+    ],
+    "render": [
+      "draw <name>",
+      "render <name>",
+      "show <name>"
+    ]
+  },
+  "ui": {
+    "component": [
+      "component <name> { <body> }",
+      "element <name> { <body> }"
+    ],
+    "props": [
+      "props.<name>",
+      "useProps.<name>"
+    ],
+    "state": [
+      "state <name> = <value>;",
+      "useState <name> = <value>;"
+    ],
+    "eventHandlers": [
+      "onClick",
+      "onHover",
+      "onInput"
+    ],
+    "lifecycle": [
+      "onMount",
+      "onUpdate",
+      "onUnmount"
+    ]
+  },
+  "style": {
+    "cssRule": "<selector> { <property>: <value>; }",
+    "keywords": [
+      "color", "background", "margin", "padding", "border",
+      "display", "flex", "grid", "font", "size", "align"
+    ],
+    "values": [
+      "px", "em", "rem", "%", "#", "rgb()", "rgba()"
+    ]
+  },
+  "cssValues": {
+    "aliases": [
+      "px", "em", "rem", "%", "#", "rgb()", "rgba()"
+    ],
+    "descriptions": {
+      "px": "pixels",
+      "em": "relative-to-font",
+      "rem": "root-font-relative",
+      "%": "percent",
+      "#": "hex-color",
+      "rgb()": "red-green-blue",
+      "rgba()": "red-green-blue-alpha"
+    }
+  },
+  "motion": {
+    "up": ["move up", "go up", "rise"],
+    "down": ["move down", "go down", "descend"],
+    "left": ["move left", "go left", "shift left"],
+    "right": ["move right", "go right", "shift right"]
+  },
+  "integration": {
+    "api": {
+      "get": ["fetch from", "get from", "read from"],
+      "post": ["send to", "post to", "submit to"],
+      "put": ["update at", "put to"],
+      "delete": ["remove from", "delete from"]
+    },
+    "binding": {
+      "bind": ["bind <data> to <element>", "connect <data> -> <element>"],
+      "sync": ["sync <source> with <target>", "mirror <source> to <target>"]
+    },
+    "interfaces": {
+      "route": ["route <path> to <component>", "link <path> with <element>"],
+      "mount": ["mount <component>", "attach <element>"],
+      "init": ["initialize", "boot", "start"]
+    }
+  }
+}

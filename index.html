@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🧠 Son-Rev-Chain Interface</title>
+  <style>
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background-color: #111;
+      color: #eee;
+      padding: 2rem;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    h1 {
+      color: #0f0;
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #0f0;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      background: #222;
+      color: #0f0;
+      border: 1px solid #444;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    button {
+      cursor: pointer;
+      margin-top: 1rem;
+      background-color: #004400;
+      border: 1px solid #006600;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #006600;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #000;
+      padding: 1rem;
+      border: 1px solid #333;
+      white-space: pre-wrap;
+      min-height: 100px;
+      border-radius: 4px;
+      font-size: 0.95rem;
+    }
+
+    hr {
+      margin: 2rem 0;
+      border: 1px solid #222;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 Son-Rev-Chain Interface</h1>
+
+  <label for="agentName">Agent Name:</label>
+  <input type="text" id="agentName" value="Neo" placeholder="Enter agent name" />
+
+  <label for="prompt">Prompt:</label>
+  <textarea id="prompt" rows="4" placeholder="What is the nature of self-reflection?"></textarea>
+
+  <button id="runButton">Run Agent</button>
+
+  <div class="output" id="responseBox" aria-live="polite"></div>
+
+  <hr />
+
+  <button id="loadLogsButton">🗂 View Logs</button>
+  <div class="output" id="logsBox" aria-live="polite"></div>
+
+  <script>
+    document.getElementById('runButton').addEventListener('click', async () => {
+      const agentName = document.getElementById('agentName').value.trim();
+      const prompt = document.getElementById('prompt').value.trim();
+      const resBox = document.getElementById('responseBox');
+
+      if (!agentName || !prompt) {
+        resBox.textContent = "❗ Please enter both an agent name and a prompt.";
+        return;
+      }
+
+      resBox.textContent = "🤔 Thinking...";
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/agent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            agent_name: agentName,
+            prompt: prompt
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          resBox.textContent = `🤖 ${agentName} says:\n\n${data.response || "No response."}`;
+        } else {
+          resBox.textContent = `❌ Error: ${data.detail || JSON.stringify(data)}`;
+        }
+      } catch (err) {
+        resBox.textContent = `❌ Network or server error: ${err.message}`;
+      }
+    });
+
+    document.getElementById('loadLogsButton').addEventListener('click', async () => {
+      const logsBox = document.getElementById('logsBox');
+      logsBox.textContent = "📂 Loading logs...";
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/logs");
+
+        const data = await response.json();
+
+        if (response.ok) {
+          logsBox.textContent = JSON.stringify(data.logs || data, null, 2);
+        } else {
+          logsBox.textContent = "❌ Failed to load logs.";
+        }
+      } catch (err) {
+        logsBox.textContent = `❌ Network or server error: ${err.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
