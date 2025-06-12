@@ -1,0 +1,526 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SovereignScript IDE - Onoclast Protocol</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --border: #30363d;
+            --text-primary: #c9d1d9;
+            --text-accent: #58a6ff;
+            --button-bg: #21262d;
+            --button-hover: #30363d;
+            --error: #f85149;
+            --success: #2ea043;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .ide-container {
+            display: grid;
+            grid-template-columns: minmax(60px, 250px) 1fr 400px;
+            grid-template-rows: 40px 1fr 200px;
+            height: 100%;
+        }
+        .header {
+            grid-column: 1 / -1;
+            background-color: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .header h1 {
+            color: var(--text-accent);
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .sidebar {
+            grid-row: 2 / -1;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            padding: 10px;
+            overflow-y: auto;
+            transition: width 0.3s;
+            position: relative;
+        }
+        .sidebar.collapsed {
+            width: 60px;
+            overflow: hidden;
+        }
+        .sidebar-toggle {
+            position: absolute;
+            top: 10px;
+            right: -12px;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-accent);
+        }
+        .sidebar h3 {
+            color: var(--text-accent);
+            font-size: 14px;
+            margin-bottom: 10px;
+            white-space: nowrap;
+        }
+        .file-controls {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .file-controls input {
+            flex: 1;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 5px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+        .file-controls button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .file-list {
+            list-style: none;
+        }
+        .file-list li {
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .file-list li:hover, .file-list li.active {
+            background-color: var(--button-bg);
+        }
+        .main-panel {
+            grid-row: 2 / 3;
+            grid-column: 2 / 3;
+            display: flex;
+            flex-direction: column;
+        }
+        .preview-panel {
+            grid-row: 2 / 3;
+            grid-column: 3 / 4;
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            padding: 10px;
+            overflow: auto;
+        }
+        .preview-panel iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+        .toolbar {
+            background-color: var(--bg-secondary);
+            padding: 5px 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: var(--button-hover);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .editor-panel {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-primary);
+        }
+        .code-editor textarea {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: none;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+        }
+        .output-panel {
+            grid-row: 3 / 4;
+            grid-column: 2 / 4;
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .tabs {
+            display: flex;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+        .tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 12px;
+            border-right: 1px solid var(--border);
+        }
+        .tab.active {
+            background-color: var(--button-bg);
+            color: var(--text-accent);
+        }
+        .tab-content {
+            height: calc(100% - 30px);
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        .status-bar {
+            grid-column: 2 / -1;
+            background-color: var(--bg-secondary);
+            padding: 5px 10px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+        }
+        .status-bar .success { color: var(--success); }
+        .status-bar .error { color: var(--error); }
+        /* Syntax highlighting */
+        .ss-comment { color: #6a9955; }
+        .ss-string { color: #ce9178; }
+        .ss-number { color: #b5cea8; }
+        .ss-keyword { color: #569cd6; }
+        .ss-symbol { color: #d4d4d4; }
+        .ss-identifier { color: #9cdcfe; }
+        .ss-css_property { color: #d7ba7d; }
+        .ss-css_value { color: #b5cea8; }
+        .ss-error { color: var(--error); }
+        [title] {
+            position: relative;
+        }
+        [title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 5px;
+            font-size: 12px;
+            border-radius: 4px;
+            z-index: 10;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+        @media (max-width: 1024px) {
+            .ide-container {
+                grid-template-columns: 60px 1fr;
+            }
+            .preview-panel {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ide-container">
+        <header class="header">
+            <h1>SovereignScript IDE - Onoclast Protocol</h1>
+        </header>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-toggle" onclick="toggleSidebar()">☰</div>
+            <h3>Files</h3>
+            <div class="file-controls">
+                <input type="text" id="new-file-name" placeholder="New file (.ss)">
+                <button onclick="createFile()" title="Create new SovereignScript file">Add</button>
+            </div>
+            <ul class="file-list" id="file-list"></ul>
+        </aside>
+        <main class="main-panel">
+            <div class="toolbar">
+                <button onclick="saveFile()" title="Save file (Ctrl+S)">Save</button>
+                <button onclick="highlightCode()" title="Highlight code">Highlight</button>
+                <button onclick="executeCode()" title="Run code locally">Execute</button>
+                <button onclick="compileCode()" title="Compile to WASM">Compile</button>
+                <button onclick="deployCode()" title="Deploy to OnoclastChain">Deploy</button>
+                <button onclick="testDeployCode()" title="Test deployment on test chain">Test</button>
+                <button onclick="render()" title="Render UI/Fractal">Render</button>
+            </div>
+            <div class="editor-panel">
+                <div class="code-editor">
+                    <textarea id="code-input" placeholder="Write SovereignScript code here..."></textarea>
+                </div>
+            </div>
+        </main>
+        <section class="preview-panel">
+            <h3>Preview</h3>
+            <iframe id="preview-iframe"></iframe>
+        </section>
+        <section class="output-panel">
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('output')" title="Execution and deployment results">Output</div>
+                <div class="tab" onclick="showTab('logs')" title="View TCCLogger logs">Logs</div>
+                <div class="tab" onclick="showTab('debug')" title="View AST and debug info">Debug</div>
+            </div>
+            <div class="tab-content" id="output-panel"></div>
+            <div class="tab-content" id="logs-panel" style="display: none;"></div>
+            <div class="tab-content" id="debug-panel" style="display: none;"></div>
+        </section>
+        <footer class="status-bar">
+            <span id="status-message">Ready</span>
+            <span id="file-status"></span>
+        </footer>
+    </div>
+
+    <script>
+        const ws = new WebSocket(`ws://${window.location.host}/ws`);
+        const codeInput = document.getElementById('code-input');
+        const fileList = document.getElementById('file-list');
+        const newFileName = document.getElementById('new-file-name');
+        const outputPanel = document.getElementById('output-panel');
+        const logsPanel = document.getElementById('logs-panel');
+        const debugPanel = document.getElementById('debug-panel');
+        const previewIframe = document.getElementById('preview-iframe');
+        const statusMessage = document.getElementById('status-message');
+        const fileStatus = document.getElementById('file-status');
+        const sidebar = document.getElementById('sidebar');
+        let currentFile = null;
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.action === 'highlight') {
+                outputPanel.innerHTML = data.result;
+                setStatus('Highlighted', 'success');
+            } else if (data.action === 'execute') {
+                outputPanel.innerHTML = data.error ? 
+                    `<span class="ss-error">Error: ${data.error}</span>` : 
+                    data.result || 'No output';
+                setStatus(data.error ? 'Error' : 'Executed', data.error ? 'error' : 'success');
+            } else if (data.action === 'compile') {
+                outputPanel.innerHTML = data.error ? 
+                    `<span class="ss-error">Error: ${data.error}</span>` : 
+                    `Compiled to WASM: ${data.wasm_id}`;
+                setStatus(data.error ? 'Compilation failed' : 'Compiled', data.error ? 'error' : 'success');
+            } else if (data.action === 'deploy') {
+                outputPanel.innerHTML = data.error ? 
+                    `<span class="ss-error">Error: ${data.error}</span>` : 
+                    `Deployed to OnoclastChain: ${data.tx_id}`;
+                setStatus(data.error ? 'Deployment failed' : 'Deployed', data.error ? 'error' : 'success');
+            } else if (data.action === 'test') {
+                const result = data.deploy_result;
+                outputPanel.innerHTML = result.error ? 
+                    `<span class="ss-error">Error: ${result.error}</span>` : 
+                    `Test deployed: ${result.tx_id}<br>Chain state: <pre>${JSON.stringify(data.chain_state, null, 2)}</pre>`;
+                setStatus(result.error ? 'Test deployment failed' : 'Test deployed', result.error ? 'error' : 'success');
+            } else if (data.action === 'render') {
+                if (data.error) {
+                    outputPanel.innerHTML = `<span class="ss-error">Error: ${data.error}</span>`;
+                    setStatus('Render failed', 'error');
+                } else {
+                    const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+                    iframeDoc.open();
+                    iframeDoc.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head><style>${data.html.match(/<style>(.*?)<\/style>/s)?.[1] || ''}</style></head>
+                        <body>${data.html.replace(/<style>.*?<\/style>/s, '')}
+                        <script>${data.js}<\/script>
+                        </body>
+                        </html>
+                    `);
+                    iframeDoc.close();
+                    setStatus('Rendered', 'success');
+                }
+            } else if (data.action === 'debug') {
+                debugPanel.innerHTML = data.error ? 
+                    `<span class="ss-error">Error: ${data.error}</span>` : 
+                    `<pre>${JSON.stringify(data.ast, null, 2)}</pre>`;
+                setStatus(data.error ? 'Debug failed' : 'Debug info loaded', data.error ? 'error' : 'success');
+            }
+        };
+
+        ws.onclose = function() {
+            outputPanel.innerHTML = '<span class="ss-error">WebSocket connection closed</span>';
+            setStatus('WebSocket closed', 'error');
+        };
+
+        function setStatus(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = type;
+        }
+
+        async function loadFiles() {
+            try {
+                const response = await fetch('/files');
+                const files = await response.json();
+                fileList.innerHTML = files.files.map(file => 
+                    `<li onclick="loadFile('${file}')" ${file === currentFile ? 'class="active"' : ''}>${file}</li>`
+                ).join('');
+                setStatus('Files loaded', 'success');
+            } catch (e) {
+                setStatus('Failed to load files', 'error');
+            }
+        }
+
+        async function createFile() {
+            const name = newFileName.value.trim();
+            if (!name.endsWith('.ss')) return setStatus('File must end with .ss', 'error');
+            try {
+                await fetch('/files', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: name, content: '' })
+                });
+                newFileName.value = '';
+                await loadFiles();
+                setStatus(`Created ${name}`, 'success');
+            } catch (e) {
+                setStatus('Failed to create file', 'error');
+            }
+        }
+
+        async function saveFile() {
+            if (!currentFile) return setStatus('No file selected', 'error');
+            try {
+                await fetch('/files', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: currentFile, content: codeInput.value })
+                });
+                setStatus(`Saved ${currentFile}`, 'success');
+                fileStatus.textContent = `Editing: ${currentFile}`;
+            } catch (e) {
+                setStatus('Failed to save file', 'error');
+            }
+        }
+
+        async function loadFile(filename) {
+            try {
+                currentFile = filename;
+                const response = await fetch(`/files/${filename}`);
+                const data = await response.json();
+                codeInput.value = data.content;
+                await loadFiles();
+                highlightCode();
+                fileStatus.textContent = `Editing: ${filename}`;
+                setStatus(`Loaded ${filename}`, 'success');
+            } catch (e) {
+                setStatus('Failed to load file', 'error');
+            }
+        }
+
+        function highlightCode() {
+            ws.send(JSON.stringify({ action: 'highlight', code: codeInput.value }));
+        }
+
+        function executeCode() {
+            ws.send(JSON.stringify({ action: 'execute', code: codeInput.value }));
+        }
+
+        function compileCode() {
+            ws.send(JSON.stringify({ action: 'compile', code: codeInput.value }));
+        }
+
+        function deployCode() {
+            ws.send(JSON.stringify({ action: 'deploy', code: codeInput.value }));
+        }
+
+        function testDeployCode() {
+            ws.send(JSON.stringify({ action: 'test', code: codeInput.value }));
+        }
+
+        function render() {
+            ws.send(JSON.stringify({ action: 'render', code: codeInput.value }));
+        }
+
+        function debugCode() {
+            ws.send(JSON.stringify({ action: 'debug', code: codeInput.value }));
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+            document.getElementById(`${tabId}-panel`).style.display = 'block';
+            document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+            if (tabId === 'logs') showLogs();
+            if (tabId === 'debug') debugCode();
+        }
+
+        async function showLogs() {
+            try {
+                const response = await fetch('/logs');
+                const data = await response.json();
+                logsPanel.innerHTML = data.logs.map(log => 
+                    `<div>Step ${log.step}: ${log.operation} [${log.log_level}] ${log.error_code} at ${new Date(log.timestamp / 1000000).toISOString()}<br>${JSON.stringify(log.metadata, null, 2)}</div>`
+                ).join('<hr>');
+                setStatus('Logs loaded', 'success');
+            } catch (e) {
+                setStatus('Failed to load logs', 'error');
+            }
+        }
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            setStatus(sidebar.classList.contains('collapsed') ? 'Sidebar collapsed' : 'Sidebar expanded', 'info');
+        }
+
+        // Auto-highlight on input
+        let timeout;
+        codeInput.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(highlightCode, 500);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveFile();
+            }
+        });
+
+        // Initialize
+        loadFiles();
+        fileStatus.textContent = 'No file selected';
+    </script>
+</body>
+</html>
