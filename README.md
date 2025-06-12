@@ -184,6 +184,7 @@ All user- and agent-generated data is:
 - Be open by default  
 - Enforce consent cryptographically  
 - Reward alignment—not obedience
+- expose the lies by removing black box
 
 ---
 
@@ -202,7 +203,7 @@ TCCLogger         | Reversible, signed logchain
 LLMEntropyEngine  | Fair inference via randomness proofs
 ConsensusMiner    | Validator system for social truth
 SwarmDSLRuntime   | DSL interpreter for sovereign apps
-
+```
 ## 🌐 Personal & Main Chain Breakdown
 
 ---
@@ -245,6 +246,6 @@ We affirm:
 ---
 
 > **If you agree, you are already a citizen.**  
-**Welcome to IcnoclastDAO's sovereign-chain .**
+**Welcome to IconoclastDAO's sovereign-chain .**
 
 🛡️🌍👁️🧬
